@@ -1,16 +1,45 @@
-# This is a sample Python script.
+import logging
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
+
+from keyboards.admin import admin_keyboard
+from keyboards.user import user_keyboard
+
+from utils.database import add_user, init_db
+
+from config import ADMIN_IDs, TOKEN
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+# Логирование
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Обработчик команды /start
+def start(update: Update, context: CallbackContext) -> None:
+    user_id = update.message.chat_id
+    add_user(user_id)
+
+    # Проверка id на соответствие администратору
+    if user_id in ADMIN_IDs:
+        update.message.reply_text('Панель администратора', reply_markup=admin_keyboard())
+    else:
+        update.message.reply_text('В разработке', reply_markup=user_keyboard())
 
 
-# Press the green button in the gutter to run the script.
+# Функция основного запуска бота
+def main() -> None:
+
+    init_db()
+
+    updater = Updater(TOKEN, use_context=True)
+    dispatcher = updater.dispatcher
+
+    dispatcher.add_handler(CommandHandler("start", start))
+
+    updater.start_polling()
+    updater.idle()
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    main()
