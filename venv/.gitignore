@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 config.py
 bot.db
+.gitignore
 # C extensions
 *.so
 
