@@ -1,7 +1,7 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Функция для создания пользовательской клавиатуры
-def user_keyboard():
+def user_main_keyboard():
     keyboard = [
         [InlineKeyboardButton("Категории", callback_data='categories')],
         [InlineKeyboardButton("Поиск по номеру", callback_data='search_by_number')],
