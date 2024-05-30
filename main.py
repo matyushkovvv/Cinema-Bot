@@ -1,44 +1,30 @@
 import logging
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, CallbackContext
+from handlers.admin_handlers import admin_mine_menu_handler
 
-from keyboards.admin import admin_keyboard
-from keyboards.user import user_keyboard
+from utils.database import init_database
+from utils.commands import start
 
-from utils.database import add_user, init_db
-
-from config import ADMIN_IDs, TOKEN
+from config import TOKEN
 
 
 # Логирование
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Обработчик команды /start
-def start(update: Update, context: CallbackContext) -> None:
-    user_id = update.message.chat_id
-    add_user(user_id)
-
-    # Проверка id на соответствие администратору
-    if user_id in ADMIN_IDs:
-        update.message.reply_text('Панель администратора', reply_markup=admin_keyboard())
-    else:
-        update.message.reply_text('В разработке', reply_markup=user_keyboard())
-
 
 # Функция основного запуска бота
 def main() -> None:
+    init_database()
 
-    init_db()
+    application = Application.builder().token(TOKEN).build()
 
-    updater = Updater(TOKEN, use_context=True)
-    dispatcher = updater.dispatcher
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CallbackQueryHandler(admin_mine_menu_handler))
 
-    dispatcher.add_handler(CommandHandler("start", start))
-
-    updater.start_polling()
-    updater.idle()
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 if __name__ == '__main__':
